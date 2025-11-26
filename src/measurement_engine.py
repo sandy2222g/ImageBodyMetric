@@ -4,6 +4,18 @@ import cv2
 
 
 class MeasurementEngine:
+    """
+    Estimates body measurements from pose landmarks using height calibration.
+    
+    Anthropometric assumptions:
+    - Head offset: 8.5% of body height (nose to top of head)
+    - Chest circumference: ~3.2x shoulder width
+    - Waist circumference: ~2.8x waist width
+    - Hip circumference: ~3.3x hip width
+    
+    These multipliers are empirical approximations for frontal view measurements
+    and may need adjustment for different populations or body types.
+    """
     def __init__(self, height_cm: float):
         self.height_cm = height_cm
         self.scale_factor = None
@@ -14,29 +26,52 @@ class MeasurementEngine:
         return np.sqrt(dx**2 + dy**2)
     
     def compute_scale_factor(self, landmarks: Dict) -> Tuple[Optional[float], float]:
+        """
+        Compute pixel-to-cm scale using user height and detected landmarks.
+        
+        Calibrates by measuring nose-to-ankle distance and adding 8.5% head offset
+        to estimate full body height in pixels. This accounts for the fact that
+        MediaPipe's nose landmark sits below the true top of the head.
+        """
         if not landmarks or 0 not in landmarks:
             return None, 0.0
         
         nose = landmarks[0]
+        left_ear = landmarks.get(7)
+        right_ear = landmarks.get(8)
         left_ankle = landmarks.get(27)
         right_ankle = landmarks.get(28)
         
         if not left_ankle or not right_ankle:
             return None, 0.0
         
-        ankle_y = (left_ankle['y'] + right_ankle['y']) / 2
-        pixel_height = abs(ankle_y - nose['y'])
+        if left_ear and right_ear:
+            top_y = min(left_ear['y'], right_ear['y'], nose['y'])
+        else:
+            top_y = nose['y']
         
-        if pixel_height < 10:
+        ankle_y = (left_ankle['y'] + right_ankle['y']) / 2
+        pixel_height_nose_to_ankle = abs(ankle_y - nose['y'])
+        
+        if pixel_height_nose_to_ankle < 10:
             return None, 0.0
         
-        scale = self.height_cm / pixel_height
+        head_offset_ratio = 0.085
+        estimated_full_pixel_height = pixel_height_nose_to_ankle / (1 - head_offset_ratio)
         
-        confidence = min(
+        scale = self.height_cm / estimated_full_pixel_height
+        
+        confidence_values = [
             nose.get('visibility', 0),
             left_ankle.get('visibility', 0),
             right_ankle.get('visibility', 0)
-        )
+        ]
+        if left_ear:
+            confidence_values.append(left_ear.get('visibility', 0))
+        if right_ear:
+            confidence_values.append(right_ear.get('visibility', 0))
+        
+        confidence = min(confidence_values)
         
         return scale, float(confidence)
     
@@ -92,6 +127,13 @@ class MeasurementEngine:
         }
     
     def _estimate_waist(self, landmarks: Dict, scale: float) -> Optional[Dict]:
+        """
+        Estimate waist circumference by interpolating between shoulders and hips.
+        
+        The waist Y-position is midway between shoulders and hips. The waist width
+        is computed by interpolating X-coordinates along the shoulder-to-hip line
+        on each side, capturing the torso taper.
+        """
         left_shoulder = landmarks.get(11)
         right_shoulder = landmarks.get(12)
         left_hip = landmarks.get(23)
@@ -100,9 +142,16 @@ class MeasurementEngine:
         if not all([left_shoulder, right_shoulder, left_hip, right_hip]):
             return None
         
-        waist_left_x = left_shoulder['x']
-        waist_right_x = right_shoulder['x']
         waist_y = (left_shoulder['y'] + left_hip['y']) / 2
+        
+        shoulder_to_hip_y_dist = abs(left_hip['y'] - left_shoulder['y'])
+        if shoulder_to_hip_y_dist < 1:
+            return None
+        
+        ratio = abs(waist_y - left_shoulder['y']) / shoulder_to_hip_y_dist
+        
+        waist_left_x = left_shoulder['x'] + ratio * (left_hip['x'] - left_shoulder['x'])
+        waist_right_x = right_shoulder['x'] + ratio * (right_hip['x'] - right_shoulder['x'])
         
         waist_left = {'x': waist_left_x, 'y': waist_y}
         waist_right = {'x': waist_right_x, 'y': waist_y}
