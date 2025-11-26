@@ -2,13 +2,14 @@
 
 ## Overview
 
-A computer vision application that estimates body measurements from photos using AI pose detection. Users upload images and provide their height to receive estimated measurements for chest, waist, hips, inseam, and arm length.
+A computer vision application that estimates body measurements from photos using AI pose detection. Users upload images and provide their height to receive estimated measurements for chest, waist, hips, inseam, arm length, shoulders, and torso.
 
 ## Project Status
 
 **Created:** November 26, 2025
 **Last Updated:** November 26, 2025
-**Status:** In Development
+**Version:** 2.0.0
+**Status:** Production Ready
 
 ## Architecture
 
@@ -16,23 +17,28 @@ A computer vision application that estimates body measurements from photos using
 - **Backend:** FastAPI (Python 3.11)
 - **Computer Vision:** MediaPipe Pose Detection
 - **Image Processing:** OpenCV, NumPy, Pillow
-- **Frontend:** Vanilla JavaScript, HTML/CSS
+- **Frontend:** Vanilla JavaScript, HTML/CSS, Chart.js
 - **Server:** Uvicorn ASGI
 
 ### Project Structure
 ```
 /
-├── main.py                    # FastAPI web server
-├── measure.py                 # CLI interface
+├── main.py                        # FastAPI web server (v2.0)
+├── measure.py                     # CLI interface
 ├── src/
-│   ├── pose_detector.py      # MediaPipe pose detection wrapper
-│   ├── measurement_engine.py # Measurement calculation algorithms
-│   ├── processor.py          # Image processing pipeline
-│   └── models.py             # Pydantic data models
+│   ├── pose_detector.py          # MediaPipe pose detection wrapper
+│   ├── measurement_engine.py     # Basic measurement algorithms
+│   ├── enhanced_measurement.py   # Advanced measurements with multi-view fusion
+│   ├── image_analyzer.py         # Image quality and view detection
+│   ├── processor.py              # Image processing pipeline
+│   └── models.py                 # Pydantic data models
 ├── static/
-│   ├── index.html            # Web UI
-│   ├── style.css             # Styling
-│   └── app.js                # Frontend logic
+│   ├── index.html                # Simple web UI
+│   ├── dashboard.html            # Pro dashboard interface
+│   ├── style.css                 # Main styling
+│   ├── dashboard.css             # Dashboard styling
+│   ├── app.js                    # Simple UI logic
+│   └── dashboard.js              # Dashboard logic with charts
 └── README.md
 ```
 
@@ -43,41 +49,67 @@ A computer vision application that estimates body measurements from photos using
    - Detects 33 body landmarks
    - Returns confidence scores for each landmark
 
-2. **Measurement Engine** (`measurement_engine.py`)
-   - Calibrates pixel-to-cm scale using user height
+2. **Basic Measurement Engine** (`measurement_engine.py`)
+   - Calibrates pixel-to-cm scale using user height (8.5% head offset)
    - Estimates circumferences from width measurements
    - Calculates distances between landmarks for lengths
    - Empirical multipliers: chest (3.2x), waist (2.8x), hips (3.3x)
 
-3. **Image Processor** (`processor.py`)
+3. **Enhanced Measurement Engine** (`enhanced_measurement.py`)
+   - Elliptical circumference calculation using Ramanujan's approximation
+   - Multi-view fusion (front + side views)
+   - Gender-aware measurement multipliers
+   - Improved scale calibration with heel detection
+   - Extended measurements: shoulders, torso length
+   - View-specific depth ratios
+
+4. **Image Analyzer** (`image_analyzer.py`)
+   - Resolution, brightness, contrast, blur scoring
+   - Automatic view type detection (front/side/back)
+   - Quality suggestions and warnings
+   - Image preprocessing recommendations
+
+5. **Image Processor** (`processor.py`)
    - Handles multiple image inputs
-   - Combines measurements from different views
+   - Multi-view detection and fusion
    - Confidence-weighted averaging
-   - Generates warnings for poor quality images
+   - Accuracy rating calculation
+   - Enhanced response with image analysis
 
-4. **API Server** (`main.py`)
-   - FastAPI endpoints for web interface and API access
-   - File upload handling
+6. **API Server** (`main.py`)
+   - `/api/measure` - Basic measurement endpoint
+   - `/api/measure/enhanced` - Enhanced measurements with quality analysis
+   - `/dashboard` - Pro dashboard interface
+   - File upload handling with validation
    - Height conversion (cm/inches)
-   - JSON response with measurements and metadata
 
-5. **Web Interface** (`static/`)
-   - Responsive design with gradient background
-   - Multi-file upload support
-   - Real-time results display
-   - Confidence visualization with progress bars
+7. **Dashboard Interface** (`static/dashboard.*`)
+   - Professional sidebar layout
+   - Drag & drop image upload
+   - Bar chart for body proportions
+   - Radar chart for confidence visualization
+   - Image quality analysis display
+   - Export JSON and print functionality
 
 ## Recent Changes
 
-### November 26, 2025
+### November 26, 2025 (v2.0)
+- Added Pro Dashboard with Chart.js visualization
+- Implemented multi-view fusion using elliptical cross-sections
+- Added image quality analysis and view detection
+- Gender-aware measurement multipliers
+- Enhanced API endpoint with detailed response
+- Extended measurements: shoulders, torso
+- Improved accuracy with heel-based scale calibration
+- Export and print functionality
+
+### November 26, 2025 (v1.0)
 - Initial project setup
 - Implemented core measurement engine
 - Created MediaPipe pose detection wrapper
 - Built FastAPI web server with file upload
 - Designed responsive web interface
 - Added CLI tool for command-line usage
-- Configured Python 3.11 environment
-- Installed dependencies: FastAPI, MediaPipe, OpenCV, NumPy, Pillow, Uvicorn
 
 ## Dependencies
 
