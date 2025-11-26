@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Measurement Estimator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Body Measurement Estimator</h1>
+            <p>Upload photos and get estimated body measurements using AI</p>
+        </header>
+
+        <div class="upload-section">
+            <form id="measurementForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="images">Upload Images (Front, Side, or Back views)</label>
+                    <input type="file" id="images" name="images" accept="image/jpeg,image/png,image/jpg" multiple required>
+                    <small>Supported formats: JPG, PNG. Multiple images recommended for better accuracy.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Height</label>
+                    <div class="height-inputs">
+                        <div>
+                            <input type="number" id="height_cm" name="height_cm" placeholder="Height in cm" step="0.1" min="0" max="300">
+                            <label for="height_cm">cm</label>
+                        </div>
+                        <span class="or">OR</span>
+                        <div>
+                            <input type="number" id="height_inches" name="height_inches" placeholder="Height in inches" step="0.1" min="0" max="120">
+                            <label for="height_inches">inches</label>
+                        </div>
+                    </div>
+                    <small>Provide your height in either cm or inches for accurate measurements.</small>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    Estimate Measurements
+                </button>
+            </form>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing images... This may take a few seconds.</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <h2>Estimated Measurements</h2>
+            <div id="measurements"></div>
+            <div id="metadata"></div>
+            <div id="warnings"></div>
+        </div>
+
+        <div class="info-section">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Take clear photos of yourself in front, side, and optionally back views</li>
+                <li>Stand straight with arms slightly away from body</li>
+                <li>Wear fitted clothing for best accuracy</li>
+                <li>Ensure good lighting and minimal background clutter</li>
+                <li>Upload your photos and enter your height</li>
+            </ol>
+            
+            <div class="disclaimer">
+                <strong>Important:</strong> These measurements are estimates based on computer vision. 
+                For critical applications (tailoring, medical), please use professional measurements. 
+                Accuracy depends on image quality, pose, and clothing fit.
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
