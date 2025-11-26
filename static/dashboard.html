@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Measurement Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Body Measurement Pro</div>
+        <div class="nav-links">
+            <a href="/">Simple Mode</a>
+            <a href="/dashboard" class="active">Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <h2>Upload Images</h2>
+            <form id="measurementForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="images">Select Photos</label>
+                    <div class="dropzone" id="dropzone">
+                        <input type="file" id="images" name="images" accept="image/jpeg,image/png" multiple required>
+                        <p>Drag & drop images here<br>or click to browse</p>
+                        <small>Front + Side views recommended</small>
+                    </div>
+                    <div id="previewContainer" class="preview-container"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="height_cm">Height (cm)</label>
+                    <input type="number" id="height_cm" name="height_cm" placeholder="175" step="0.1" min="100" max="250">
+                </div>
+
+                <div class="form-group">
+                    <label for="height_inches">or Height (inches)</label>
+                    <input type="number" id="height_inches" name="height_inches" placeholder="69" step="0.1" min="40" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender (optional)</label>
+                    <select id="gender" name="gender">
+                        <option value="">Not specified</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    Analyze & Measure
+                </button>
+            </form>
+        </div>
+
+        <div class="main-content">
+            <div id="welcomePanel" class="welcome-panel">
+                <h1>Welcome to Body Measurement Pro</h1>
+                <p>Get accurate body measurements using AI-powered analysis</p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📷</div>
+                        <h3>Multi-View Analysis</h3>
+                        <p>Upload front and side photos for improved accuracy</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Quality Scoring</h3>
+                        <p>Get feedback on image quality for best results</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Confidence Ratings</h3>
+                        <p>Each measurement includes reliability scores</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📐</div>
+                        <h3>8 Measurements</h3>
+                        <p>Chest, waist, hips, inseam, arms, shoulders, torso</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loadingPanel" class="loading-panel" style="display: none;">
+                <div class="spinner-large"></div>
+                <h2>Analyzing your images...</h2>
+                <p>Detecting body landmarks and calculating measurements</p>
+            </div>
+
+            <div id="resultsPanel" class="results-panel" style="display: none;">
+                <div class="results-header">
+                    <h2>Your Body Measurements</h2>
+                    <div class="accuracy-badge" id="accuracyBadge">
+                        <span class="accuracy-value">--</span>
+                        <span class="accuracy-label">Accuracy</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card measurements-card">
+                        <h3>Measurements</h3>
+                        <div id="measurementsGrid" class="measurements-grid"></div>
+                    </div>
+
+                    <div class="dashboard-card chart-card">
+                        <h3>Body Proportions</h3>
+                        <canvas id="proportionsChart"></canvas>
+                    </div>
+
+                    <div class="dashboard-card images-card">
+                        <h3>Image Analysis</h3>
+                        <div id="imageAnalysisContainer"></div>
+                    </div>
+
+                    <div class="dashboard-card confidence-card">
+                        <h3>Confidence Overview</h3>
+                        <canvas id="confidenceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-card warnings-card" id="warningsCard" style="display: none;">
+                    <h3>Recommendations</h3>
+                    <ul id="warningsList"></ul>
+                </div>
+
+                <div class="export-section">
+                    <button class="btn-secondary" onclick="exportJSON()">Export JSON</button>
+                    <button class="btn-secondary" onclick="printResults()">Print Results</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>
