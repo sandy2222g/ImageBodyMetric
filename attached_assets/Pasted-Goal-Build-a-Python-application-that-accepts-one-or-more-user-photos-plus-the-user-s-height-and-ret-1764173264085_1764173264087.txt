@@ -1,0 +1,116 @@
+Goal
+
+Build a Python application that accepts one or more user photos plus the user’s height and returns estimated body measurements (e.g., chest/bust, waist, hips, inseam, arm length). The app should use computer-vision techniques (pose/keypoint detection, segmentation, or depth estimation) and the provided height to convert pixel measurements into real-world units (cm or inches).
+
+Inputs
+
+One or more RGB images (front, side, and optional back views). Accept common formats: .jpg, .png.
+
+User’s height (numeric, cm or inches — specify which).
+
+Optional: user-supplied metadata (gender, age, clothing tightness).
+
+Outputs
+
+JSON containing measurements (in cm), confidence scores, and which images were used. Example:
+
+{
+  "height_cm": 175,
+  "measurements": {
+    "chest_cm": {"value": 96.5, "confidence": 0.87},
+    "waist_cm": {"value": 78.2, "confidence": 0.85},
+    "hips_cm":  {"value": 98.0, "confidence": 0.83},
+    "inseam_cm": {"value": 78.0, "confidence": 0.70},
+    "left_arm_cm": {"value": 60.2, "confidence": 0.80}
+  },
+  "used_images": ["front.jpg", "side.jpg"],
+  "warnings": []
+}
+
+Success criteria
+
+Measurements returned with plausible values and confidence scores.
+
+Pixel → cm conversion calibrated using supplied height (error under acceptable tolerance).
+
+CLI or minimal web UI for uploading images + entering height.
+
+Unit tests and sample images demonstrating pipeline.
+
+Minimal recommended approach (practical & achievable)
+
+Detect human & keypoints (pose estimation)
+
+Use a robust pose/keypoint detector (e.g., MediaPipe Pose, OpenPose, or a light PyTorch/TensorFlow pose model) to get body landmarks: shoulders, hips, knees, ankles, neck, wrists, etc.
+
+Optional: segmentation / silhouette extraction
+
+Use semantic segmentation (DeepLab, etc.) to find body contour for circumferences estimation if you want more accurate widths.
+
+Scale using user height
+
+Measure pixel distance between two reliably-detected vertical keypoints (top of head to feet/ankle in the same image). Compute scale = true_height_cm / pixel_height. Use scale to convert all pixel distances to cm.
+
+If multiple images with different views exist, compute scale per-image and reconcile.
+
+Estimate circumferences
+
+For chest/waist/hips: use horizontal distance between symmetric keypoints (left and right shoulder/hip) and approximate circumference by multiplying width by a factor (empirical). Better: use silhouette cross-section width and a body-shape model to estimate circumference.
+
+Multi-view improvement (optional)
+
+If both front and side views provided, combine widths to form elliptical cross-sections and derive circumference ≈ perimeter of ellipse (π * (a + b)) where a and b are semi-major/minor axes (half widths).
+
+Confidence scores
+
+Base on pose detection confidence, image quality, and consistency across views.
+
+Libraries & tools (Python)
+
+Image / preprocess: opencv-python, Pillow
+
+Pose/Keypoints: mediapipe, openpifpaf, openpose (bindings), or detectron2/mmpose (advanced)
+
+Deep learning (optional): torch, tensorflow
+
+Segmentation (optional): maskrcnn, detectron2, cv2 morphological ops
+
+Utilities: numpy, scipy
+
+Web UI (optional): Flask or FastAPI + simple HTML/JS
+
+Visualization: matplotlib
+
+Privacy & ethics
+
+Always get user consent before processing images.
+
+Store images temporarily and delete after processing (or better: process in-memory).
+
+Warn users about expected error margins and limitations (tight clothing, occlusions, camera angle).
+
+Do not attempt to identify or store personally-identifying info.
+
+Evaluation & test data
+
+Test qualitatively using volunteers with known measurements.
+
+Quantitatively report mean absolute error (MAE) per measurement and coverage/confidence.
+
+Use public pose datasets for testing detection (COCO keypoints, MPII), but note these do not include circumference ground truth.
+
+Deliverables
+
+Python package/script that:
+
+Accepts images and height
+
+Returns JSON measurements + confidences
+
+Minimal CLI: python measure.py --images front.jpg side.jpg --height-cm 175
+
+Optional web demo (FastAPI) that accepts file uploads
+
+README with setup and usage
+
+Unit tests and sample images
